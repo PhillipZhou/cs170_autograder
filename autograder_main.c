@@ -17,11 +17,11 @@
 #include <signal.h>
 #include <fcntl.h>
 
-#define NUM_TESTS 6
+#define NUM_TESTS 5
 #define PASS 1
 #define FAIL 0
-#define THREAD_WAIT_MICRO 500000 // how many microseconds do we wait for the threads to complete their task
-
+#define THREAD_WAIT_MICRO 1000000 // how many microseconds do we wait for the threads to complete some task
+#define TEST_WAIT_MILI 2000 // how many miliseconds do we wait before assuming a test is hung
 
 //if your code compiles you pass test 0 for free
 //==============================================================================
@@ -118,40 +118,6 @@ int test4(void){
 
 
 
-//scheduler test 2
-//==============================================================================
-static int c = 0;
-void* _thread_inc(void* arg){
-    int i;
-    for(i = 0; i < 10; i++){
-        c++;
-    }
-    
-    pthread_exit(0);
-}
-
-int test5(void){
-    int i;
-    pthread_t tid1; pthread_t tid2;
-        
-    pthread_create(&tid1, NULL,  &_thread_inc, NULL);
-    pthread_create(&tid2, NULL,  &_thread_inc, NULL);
-    
-    for(i = 0; i < 10; i++){
-        c++;
-    }
-
-    usleep(THREAD_WAIT_MICRO);
-
-    if(c == 30){
-        return PASS;
-    }else{
-        return FAIL;
-    }
-    
-}
-
-
 //end of tests
 //==============================================================================
 
@@ -171,9 +137,6 @@ int test_launcher(int test_num){
 
     case 4:
         return test4();
-
-    case 5:
-        return test5();
         
     default:
         return 0;
@@ -196,7 +159,6 @@ int main(void){
     int score = 0; int total_score = 0;
 
     int devnull_fd = open("/dev/null", O_WRONLY);
-
 
     pipe(pipe_fd);
     poll_fds.fd = pipe_fd[0]; // only going to poll the read end of our pipe
@@ -221,7 +183,7 @@ int main(void){
         //keeps track of score
         else{  
             
-            if(poll(&poll_fds, 1, 1000)){
+            if(poll(&poll_fds, 1, TEST_WAIT_MILI)){
                 read(pipe_fd[0], &score, sizeof(score));
             }
             
