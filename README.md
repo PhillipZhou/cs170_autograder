@@ -18,7 +18,7 @@ when new tests are released.
 
 If you think you are failing a test due to a bug in the autograder, please
 make sure to test against the glibc pthread library first, you can do that
-by running the "ref" executable that is created by this projects Makefile
+by running the "autograder_reference" executable that is created by this projects Makefile
 
 The code is designed to not fail, even if the code it's testing crashes or 
 hangs, if you do manage to break this autograder (I.E. you never get your
