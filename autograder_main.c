@@ -26,24 +26,24 @@
 
 //if your code compiles you pass test 0 for free
 //==============================================================================
-int test0(void){
+static int test0(void){
     return PASS;
 }
 
 //basic pthread create and exit tests
 //==============================================================================
-void* _thread_dummy(void* arg){
+static void* _thread_dummy(void* arg){
     pthread_t a = pthread_self();
     pthread_exit(0);
 }
 
-void* _thread_dummy_loop(void* arg){
+static void* _thread_dummy_loop(void* arg){
     pthread_t a = pthread_self();
     for(int i = 0; i < 100000000; i++);
     pthread_exit(0);
 }
 
-int test1(void){
+static int test1(void){
     pthread_t tid1 = 0;
     pthread_t tid2 = 0;
     
@@ -61,12 +61,12 @@ int test1(void){
 //basic pthread self test
 //==============================================================================
 static pthread_t global_tid1 = 1; 
-void* _thread_self_test(void* arg){
+static void* _thread_self_test(void* arg){
     global_tid1 = pthread_self();
     pthread_exit(0);
 }
 
-int test2(void){
+static int test2(void){
     pthread_t tid1 = 0;
     
     pthread_create(&tid1, NULL,  &_thread_self_test, NULL);
@@ -81,13 +81,13 @@ int test2(void){
 static int a3 = 0;
 static int b3 = 0;
 
-void* _thread_schedule_a(void* arg){
+static void* _thread_schedule_a(void* arg){
     while(1){
         a3 = 1;
     }
 
 }
-void* _thread_schedule_b(void* arg){
+static void* _thread_schedule_b(void* arg){
     while(1){
         if(a3){
             b3 = 1;
@@ -95,7 +95,7 @@ void* _thread_schedule_b(void* arg){
     }
 }
 
-int test3(void){
+static int test3(void){
     pthread_t tid1; pthread_t tid2;
         
     pthread_create(&tid1, NULL,  &_thread_schedule_a, NULL);
@@ -111,7 +111,7 @@ int test3(void){
 //scheduler test 2
 //==============================================================================
 static int a4;
-void* _thread_inc4(void* arg){
+static void* _thread_inc4(void* arg){
     
     for(int i = 0; i < 10; i++){
         a4++;
@@ -120,7 +120,7 @@ void* _thread_inc4(void* arg){
     
 }
 
-int test4(void){
+static int test4(void){
     pthread_t tid1; pthread_t tid2;
         
     pthread_create(&tid1, NULL,  &_thread_inc4, NULL);
@@ -140,13 +140,13 @@ int test4(void){
 //scheduler test 3
 //==============================================================================
 static int a5;
-void* _thread_inc1(void* arg){
+static void* _thread_inc1(void* arg){
     a5++;
     pthread_exit(0);
     
 }
 
-int test5(void){
+static int test5(void){
     pthread_t tid1; 
     
     for(int i = 0; i < 128; i++){
@@ -162,12 +162,12 @@ int test5(void){
 //passing arguments
 //==============================================================================
 static int e;
-void* _thread_arg(void* arg){
+static void* _thread_arg(void* arg){
     e = *(int*)arg;
     pthread_exit(0);
 }
 
-int test6(void){
+static int test6(void){
     pthread_t tid1; pthread_t tid2;
 
     int arg = 244567;
@@ -180,7 +180,7 @@ int test6(void){
 
 //does your stack work?
 //==============================================================================
-int _thread_fib(int a){
+static int _thread_fib(int a){
     if(a == 0) {
         return 0;
     }
@@ -192,14 +192,14 @@ int _thread_fib(int a){
 }
 
 
-void* _thread_fcn(void* arg){
+static void* _thread_fcn(void* arg){
     int fib = *(int*)arg;
     *(int*)arg = _thread_fib(fib);
     pthread_exit(0);
 }
 
 
-int test7(void){
+static int test7(void){
     pthread_t tid1; pthread_t tid2;
 
     int arg = 12;
@@ -225,7 +225,7 @@ int test7(void){
  */
 
 
-int (*test_arr[NUM_TESTS])(void) = {&test0, &test1, &test2, &test3, &test4, &test5, &test6, &test7};
+static int (*test_arr[NUM_TESTS])(void) = {&test0, &test1, &test2, &test3, &test4, &test5, &test6, &test7};
 
 
 int main(void){
