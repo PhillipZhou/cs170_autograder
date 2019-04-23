@@ -10,8 +10,9 @@ copy of autograder_main.c or just copy the individual tests.
 ## Suggested workflow
 The intention was to have you compile autograder_main.c into your own program.
 We suggest you copy autograder_main.c into your own project directory. 
-However this program was not intended to help you debug at all. We recommend 
-that you copy tests you want to test over to a separate debugging main.c file.
+This program was not intended to help you debug at all. We recommend 
+that you copy tests you want to test over to a separate debugging main.c file
+(you can create a Makefile that outputs two executables, if you want).
 We grouped all the variables and helper functions needed for each test together. 
 
 ## Disclaimer
