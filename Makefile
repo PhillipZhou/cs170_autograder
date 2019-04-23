@@ -1,4 +1,4 @@
-all: reference_grader
+all: sample_grader
 
-reference_grader:autograder_main.c 
-	gcc autograder_main.c -o autograder_reference -lpthread
+sample_grader:autograder_main.c sample_program.c 
+	gcc autograder_main.c sample_progam.c -o sample_grader

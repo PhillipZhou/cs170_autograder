@@ -2,7 +2,7 @@
  * Sean Gillen April 2019
  *
  * This file will automatically grade your cs170 project 2.
- * Please see the Readme for more info.
+ * Please see the README for more info
  */
 
 
@@ -17,11 +17,12 @@
 #include <signal.h>
 #include <fcntl.h>
 
-#define NUM_TESTS 5
+#define NUM_TESTS 8
 #define PASS 1
 #define FAIL 0
-#define THREAD_WAIT_MICRO 1000000 // how many microseconds do we wait for the threads to complete some task
+
 #define TEST_WAIT_MILI 2000 // how many miliseconds do we wait before assuming a test is hung
+
 
 //if your code compiles you pass test 0 for free
 //==============================================================================
@@ -29,25 +30,25 @@ int test0(void){
     return PASS;
 }
 
-//basic pthread create tests
+//basic pthread create and exit tests
 //==============================================================================
 void* _thread_dummy(void* arg){
     pthread_t a = pthread_self();
     pthread_exit(0);
 }
 
-int test1(void){
-    pthread_t tid;
-    pthread_create(&tid, NULL,  &_thread_dummy, NULL);
-    return PASS;
+void* _thread_dummy_loop(void* arg){
+    pthread_t a = pthread_self();
+    for(int i = 0; i < 100000000; i++);
+    pthread_exit(0);
 }
 
-int test2(void){
+int test1(void){
     pthread_t tid1 = 0;
     pthread_t tid2 = 0;
     
     pthread_create(&tid1, NULL,  &_thread_dummy, NULL);
-    pthread_create(&tid2, NULL,  &_thread_dummy, NULL);
+    pthread_create(&tid2, NULL,  &_thread_dummy_loop, NULL);
 
     if(tid1 != tid2){
         return PASS;
@@ -59,61 +60,154 @@ int test2(void){
 
 //basic pthread self test
 //==============================================================================
-static pthread_t global_tid = 0;
+static pthread_t global_tid1 = 1; 
 void* _thread_self_test(void* arg){
-    global_tid = pthread_self();
-    return arg;
+    global_tid1 = pthread_self();
+    pthread_exit(0);
 }
 
-int test3(void){
-    pthread_t main_tid = 0;
+int test2(void){
     pthread_t tid1 = 0;
     
     pthread_create(&tid1, NULL,  &_thread_self_test, NULL);
-    main_tid = pthread_self(); //yes main should have thread id too
-    usleep(500);
     
-    if(global_tid != main_tid && tid1 == global_tid){
-        return PASS;
-    }else{
-        return FAIL;
-    }
+    while((global_tid1 != tid1)); //failure occurs on a timeout
+    return PASS;
 }
-
-
 
 
 //scheduler test 1
 //==============================================================================
-static int a = 0;
-static int b = 0;
+static int a3 = 0;
+static int b3 = 0;
 
 void* _thread_schedule_a(void* arg){
     while(1){
-        a = 1;
+        a3 = 1;
     }
 
 }
 void* _thread_schedule_b(void* arg){
     while(1){
-        if(a){
-            b = 1;
+        if(a3){
+            b3 = 1;
         }
     }
+}
+
+int test3(void){
+    pthread_t tid1; pthread_t tid2;
+        
+    pthread_create(&tid1, NULL,  &_thread_schedule_a, NULL);
+    pthread_create(&tid2, NULL,  &_thread_schedule_b, NULL);
+    
+    while(b3 != 1); //just wait, failure occurs if there is a timeout
+    return PASS;
+        
+
+}
+
+
+//scheduler test 2
+//==============================================================================
+static int a4;
+void* _thread_inc4(void* arg){
+    
+    for(int i = 0; i < 10; i++){
+        a4++;
+    }
+    pthread_exit(0);
+    
 }
 
 int test4(void){
     pthread_t tid1; pthread_t tid2;
         
-    pthread_create(&tid1, NULL,  &_thread_schedule_a, NULL);
-    pthread_create(&tid2, NULL,  &_thread_schedule_b, NULL);
-    usleep(THREAD_WAIT_MICRO);
+    pthread_create(&tid1, NULL,  &_thread_inc4, NULL);
+    pthread_create(&tid2, NULL,  &_thread_inc4, NULL);
     
-    if(b == 1){
-        return PASS;
-    }else{
-        return FAIL;
+    
+    for(int i = 0; i < 10; i++){
+        a4++;
     }
+    
+    while(a4 != 30); //just wait, failure occurs if there is a timeout
+    return PASS;
+
+}
+
+
+//scheduler test 3
+//==============================================================================
+static int a5;
+void* _thread_inc1(void* arg){
+    a5++;
+    pthread_exit(0);
+    
+}
+
+int test5(void){
+    pthread_t tid1; 
+    
+    for(int i = 0; i < 128; i++){
+        pthread_create(&tid1, NULL,  &_thread_inc1, NULL);
+    }
+    
+    while(a5 != 128); //just wait, failure occurs if there is a timeout
+    return PASS;
+
+}
+
+
+//passing arguments
+//==============================================================================
+static int e;
+void* _thread_arg(void* arg){
+    e = *(int*)arg;
+    pthread_exit(0);
+}
+
+int test6(void){
+    pthread_t tid1; pthread_t tid2;
+
+    int arg = 244567;
+    pthread_create(&tid1, NULL,  &_thread_arg, &arg);
+         
+    while(e != arg); //just wait, failure occurs if there is a timeout
+    return PASS;
+
+}
+
+//does your stack work?
+//==============================================================================
+int _thread_fib(int a){
+    if(a == 0) {
+        return 0;
+    }
+    if(a == 1){
+        return 1;
+    }
+    
+    return _thread_fib(a-1) + _thread_fib(a-2);
+}
+
+
+void* _thread_fcn(void* arg){
+    int fib = *(int*)arg;
+    *(int*)arg = _thread_fib(fib);
+    pthread_exit(0);
+}
+
+
+int test7(void){
+    pthread_t tid1; pthread_t tid2;
+
+    int arg = 12;
+    pthread_create(&tid1, NULL,  &_thread_fcn, &arg);
+
+    while(arg != 144); //just wait, failure occurs if there is a timeout
+    return PASS;
+
 }
 
 
@@ -121,37 +215,19 @@ int test4(void){
 //end of tests
 //==============================================================================
 
-int test_launcher(int test_num){
-    switch(test_num){
-    case 0 :
-        return test0();
-
-    case 1 :
-        return test1();
-        
-    case 2:
-        return test2();
-
-    case 3:
-        return test3();
-
-    case 4:
-        return test4();
-        
-    default:
-        return 0;
-        
-    }
-}
-
 
 /**
  *  Some implementation details: Main spawns a child process for each
  *  test, that way if test 2/20 segfaults, we can still run the remaining
- *  test. It also hands the child a pipe to write the result of the test.
+ *  tests. It also hands the child a pipe to write the result of the test.
  *  the parent polls this pipe, and counts the test as a failure if there
  *  is a timeout (which would indicate the child is hung).
  */
+
+
+int (*test_arr[NUM_TESTS])(void) = {&test0, &test1, &test2, &test3, &test4, &test5, &test6, &test7};
+
+
 int main(void){
     
     int status; pid_t pid;
@@ -173,7 +249,7 @@ int main(void){
             dup2(devnull_fd, STDOUT_FILENO); //begone debug messages
             dup2(devnull_fd, STDERR_FILENO);
             
-            score = test_launcher(i);
+            score = test_arr[i]();
             
             write(pipe_fd[1], &score, sizeof(score));
             exit(0); 
