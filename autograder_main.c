@@ -60,7 +60,7 @@ static int test1(void){
 
 //basic pthread self test
 //==============================================================================
-static pthread_t global_tid1 = 1; 
+static pthread_t global_tid1 = (pthread_t) 1; 
 static void* _thread_self_test(void* arg){
     global_tid1 = pthread_self();
     pthread_exit(0);
