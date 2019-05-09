@@ -19,13 +19,15 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define NUM_TESTS 7
+#define NUM_TESTS 8
 #define PASS 1
 #define FAIL 0
 
 //#define _DEBUG
 #define TEST_WAIT_MILI 2000 // how many miliseconds do we wait before assuming a test is hung
 
+void lock();
+void unlock();
 
 //if your code compiles you pass test 0 for free
 //==============================================================================
@@ -220,6 +222,39 @@ static int test6(void){
 
 }
 
+//basic lock test
+//==============================================================================
+static int l;
+static void* _thread_lock_test(void* arg){
+    lock();
+    l = 20;
+    unlock();
+
+    pthread_exit(0);
+}
+
+static int test7(void){
+    pthread_t tid;
+    int i;
+
+    pthread_create(&tid, NULL,  &_thread_lock_test, NULL);
+
+    lock(); // need to lock after init is called
+    l = 10;
+    sleep(1);
+
+    if (l != 10)
+        return FAIL;
+    unlock();
+    
+    pthread_join(tid, NULL);
+
+    if (l != 20)
+        return FAIL;
+    return PASS;
+}
+
+
 
 //end of tests
 //==============================================================================
@@ -234,7 +269,7 @@ static int test6(void){
  */
 
 
-static int (*test_arr[NUM_TESTS])(void) = {&test0, &test1, &test2, &test3, &test4, &test5, &test6};
+static int (*test_arr[NUM_TESTS])(void) = {&test0, &test1, &test2, &test3, &test4, &test5, &test6, &test7};
 
 
 int main(void){
