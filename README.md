@@ -1,6 +1,6 @@
 
-# CS 170 Project 2 Autograder
-This project will automatically grade your cs170 project 2.
+# CS 170 Thread Library Autograder
+This project will automatically grade your cs170 thread library.
 You are responsible for creating a Makefile which incorporates autograder_main.c
 see the Makefile and sample_pthread.c for one example of that. 
 
